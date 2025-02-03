@@ -1,0 +1,348 @@
+local _0xf987 = game:GetService("ReplicatedStorage")
+local _0x4a2b = _0xf987:FindFirstChild("Remote Events") and _0xf987:FindFirstChild("Remote Events"):FindFirstChild("Punch")
+
+if not _0x4a2b then
+    warn("Punch RemoteEvent not found in ReplicatedStorage!")
+    return
+end
+
+local _0x7b3c = game.Players.LocalPlayer
+local _0x1d6a = false
+local _0x5e8b = false
+local _0x2c9d = 50
+local _0x3b0e = 0.3
+local _0x6a1f = true
+local _0x0b2g = nil
+local _0x9c3h = nil
+
+-- Invisibility variables
+local _0x8d4i = false
+local _0xej5k = "E"
+local _0xfl6m = true
+local _0xgm7n = false
+local _0xhn8o = -20
+
+local _0xio9p = _0x7b3c.Character or _0x7b3c.CharacterAdded:Wait()
+local _0xjp0q = nil
+local _0xkq1r = false
+local _0xlr2s = true
+
+-- Function to set up the Fake Character
+local function _0xms3t()
+    _0xio9p.Archivable = true
+    _0xjp0q = _0xio9p:Clone()
+    _0xjp0q.Name = "FakeCharacter"
+    _0xjp0q.Parent = workspace
+    _0xjp0q.HumanoidRootPart.CFrame = _0xio9p.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0) -- Initial offset
+
+    for _0xu4v, _0yw5w in pairs(_0xio9p:GetChildren()) do
+        if _0yw5w:IsA("LocalScript") then
+            local _0zv6x = _0yw5w:Clone()
+            _0zv6x.Disabled = true
+            _0zv6x.Parent = _0xjp0q
+        end
+    end
+
+    if _0xfl6m then
+        for _0xa07y, _0xb18z in pairs(_0xjp0q:GetDescendants()) do
+            if _0xb18z:IsA("BasePart") then
+                _0xb18z.Transparency = 0.7
+            end
+        end
+    end
+end
+
+-- Function to handle character death and respawn
+local function _0xc29a()
+    _0xlr2s = false
+    _0xkq1r = false
+    if _0xjp0q then
+        _0xjp0q:Destroy()
+    end
+    _0xjp0q = nil
+    _0xio9p = _0x7b3c.Character or _0x7b3c.CharacterAdded:Wait()
+    _0xms3t()
+    _0xlr2s = true
+    _0xio9p.Humanoid.Died:Connect(_0xc29a)
+    _0x7b3c.CharacterAppearanceLoaded:Connect(_0xc29a)
+end
+
+_0xio9p.Humanoid.Died:Connect(_0xc29a)
+_0x7b3c.CharacterAppearanceLoaded:Connect(_0xc29a)
+
+_0xms3t()
+
+-- Make the real character follow the fake character with improved durability
+local function _0xd3ab()
+    if _0xkq1r and _0xio9p and _0xjp0q and _0xio9p:FindFirstChild("HumanoidRootPart") and _0xjp0q:FindFirstChild("HumanoidRootPart") then
+        local _0xe4bc = _0xjp0q.HumanoidRootPart.CFrame * CFrame.new(0, _0xhn8o, 0) -- Use invisibilityOffset
+
+        -- Set the CFrame directly with higher network priority
+        _0xio9p.HumanoidRootPart.CFrame = _0xe4bc
+        _0xio9p.HumanoidRootPart:SetNetworkOwner(_0x7b3c) -- Ensure network ownership
+    end
+end
+
+game:GetService("RunService").Heartbeat:Connect(_0xd3ab)
+
+local function _0xf5cd()
+    if _0xkq1r then
+        -- Switch back to the real character
+        local _0x16de = _0xjp0q.HumanoidRootPart.CFrame
+        _0xjp0q.HumanoidRootPart.CFrame = _0xio9p.HumanoidRootPart.CFrame
+        _0xio9p.HumanoidRootPart.CFrame = _0x16de
+
+        _0xjp0q.Humanoid:UnequipTools()
+        _0x7b3c.Character = _0xio9p
+        workspace.CurrentCamera.CameraSubject = _0xio9p.Humanoid
+        
+        for _0x27ef, _0x38f0 in pairs(_0xjp0q:GetChildren()) do
+            if _0x38f0:IsA("LocalScript") then
+                _0x38f0.Disabled = true
+            end
+        end
+
+        _0xkq1r = false
+    else
+        -- Switch to the fake character
+        local _0x4901 = _0xio9p.HumanoidRootPart.CFrame
+        _0xio9p.HumanoidRootPart.CFrame = _0xjp0q.HumanoidRootPart.CFrame
+        _0xjp0q.HumanoidRootPart.CFrame = _0x4901
+
+        _0xio9p.Humanoid:UnequipTools()
+        _0x7b3c.Character = _0xjp0q
+        workspace.CurrentCamera.CameraSubject = _0xjp0q.Humanoid
+
+        for _0x5a12, _0x6b23 in pairs(_0xjp0q:GetChildren()) do
+            if _0x6b23:IsA("LocalScript") then
+                _0x6b23.Disabled = false
+            end
+        end
+        _0xkq1r = true
+    end
+end
+
+local function _0x7c34()
+    local _0x8d45 = Instance.new("ScreenGui")
+    _0x8d45.Name = "CombatUI"
+    _0x8d45.ResetOnSpawn = false
+
+    local _0x9e56 = Instance.new("Frame")
+    _0x9e56.Parent = _0x8d45
+    _0x9e56.Size = UDim2.new(0, 385, 0, 40) -- Adjusted frame size
+    _0x9e56.Position = UDim2.new(0, 10, 0, 10)
+    _0x9e56.BackgroundTransparency = 0
+    _0x9e56.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    _0x9e56.Draggable = true
+
+    local function _0xaf67(_0xbf78, _0xcg89, _0xdh9a, _0xei0b, _0xfj1c, _0x0k2d)
+        local _0x1l3e = Instance.new("TextButton")
+        _0x1l3e.Parent = _0xei0b
+        _0x1l3e.Size = UDim2.new(0, _0x0k2d, 1, 0)
+        _0x1l3e.Position = UDim2.new(0, _0xfj1c, 0, 0)
+        _0x1l3e.Text = _0xbf78
+        _0x1l3e.Font = Enum.Font.SourceSansBold
+        _0x1l3e.TextColor3 = Color3.fromRGB(255,255,255)
+        _0x1l3e.BackgroundColor3 = _0xdh9a
+        return _0x1l3e
+    end
+
+    local _0x2m4f = _0xaf67("Punch", Color3.fromRGB(0, 255, 0), Color3.fromRGB(255, 0, 0), _0x9e56, 0, 55)
+    local _0x3n5g = _0xaf67("Speed", Color3.fromRGB(0, 255, 0), Color3.fromRGB(255, 0, 0), _0x9e56, 60, 55)
+    local _0x4o6h = _0xaf67("Cooldown", Color3.fromRGB(100,100,100), Color3.fromRGB(100,100,100), _0x9e56, 120, 55)
+    local _0x5p7i = _0xaf67("Distance", Color3.fromRGB(100,100,100), Color3.fromRGB(100,100,100), _0x9e56, 180, 55)
+    local _0x6q8j = _0xaf67("Invis", Color3.fromRGB(100, 100, 100), Color3.fromRGB(100, 100, 100), _0x9e56, 240, 55) -- Changed button color
+    local _0x7r9k = _0xaf67("Offset", Color3.fromRGB(100, 100, 100), Color3.fromRGB(100, 100, 100), _0x9e56, 300, 60)
+
+    local _0x8s0l = Instance.new("TextButton")
+    _0x8s0l.Parent = _0x9e56
+    _0x8s0l.Size = UDim2.new(0, 40, 1, 0)
+    _0x8s0l.Position = UDim2.new(1, -20, 0, 0)  --  Moved back to the left 
+    _0x8s0l.Text = "Hide"
+    _0x8s0l.Font = Enum.Font.SourceSansBold
+    _0x8s0l.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _0x8s0l.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+
+    -- Invisibility offset textbox
+    local _0x9t1m = Instance.new("TextBox")
+    _0x9t1m.Parent = _0x9e56
+    _0x9t1m.Size = UDim2.new(0, 60, 0, 20)
+    _0x9t1m.Position = UDim2.new(0, 300, 0, 20)
+    _0x9t1m.Text = tostring(_0xhn8o)
+    _0x9t1m.Font = Enum.Font.SourceSans
+    _0x9t1m.TextColor3 = Color3.fromRGB(0, 0, 0)
+    _0x9t1m.BackgroundTransparency = 0
+    _0x9t1m.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+    _0x9t1m.Visible = true
+
+    _0x9t1m.FocusLost:Connect(function()
+        local _0xau2n = tonumber(_0x9t1m.Text)
+        if _0xau2n then
+            _0xhn8o = _0xau2n
+        end
+    end)
+
+    _0x8s0l.MouseButton1Click:Connect(function()
+        _0x6a1f = not _0x6a1f
+        _0x8s0l.Text = _0x6a1f and "Hide" or "Show"
+        _0x9e56.Size = UDim2.new(0, _0x6a1f and 385 or 95, 0, 40) -- Adjusted size
+
+        _0x2m4f.Visible = _0x6a1f
+        _0x3n5g.Visible = _0x6a1f
+        _0x4o6h.Visible = _0x6a1f
+        _0x5p7i.Visible = _0x6a1f
+        _0x6q8j.Visible = _0x6a1f
+        _0x7r9k.Visible = _0x6a1f
+        _0x9t1m.Visible = _0x6a1f
+
+        if _0x0b2g then
+            _0x0b2g.Visible = _0x6a1f
+        end
+        if _0x9c3h then
+            _0x9c3h.Visible = _0x6a1f
+        end
+    end)
+
+    _0x2m4f.MouseButton1Click:Connect(function()
+        _0x1d6a = not _0x1d6a
+        _0x2m4f.BackgroundColor3 = _0x1d6a and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    end)
+
+    _0x3n5g.MouseButton1Click:Connect(function()
+        _0x5e8b = not _0x5e8b
+        local _0xbu3o = _0x7b3c.Character or _0x7b3c.CharacterAdded:Wait()
+        if _0xbu3o and _0xbu3o:FindFirstChild("Humanoid") then
+            humanoid = _0xbu3o:FindFirstChild("Humanoid")
+            humanoid.WalkSpeed = _0x5e8b and 50 or 18
+            _0x3n5g.BackgroundColor3 = _0x5e8b and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        end
+    end)
+
+    _0x4o6h.MouseButton1Click:Connect(function()
+        if _0x0b2g and _0x0b2g.Parent then return end
+
+        _0x0b2g = Instance.new("TextBox")
+        _0x0b2g.Parent = _0x9e56
+        _0x0b2g.Size = UDim2.new(0, 50, 0, 20)
+        _0x0b2g.Position = UDim2.new(0, 120, 0, 20)
+        _0x0b2g.Text = tostring(_0x3b0e)
+        _0x0b2g.Font = Enum.Font.SourceSans
+        _0x0b2g.TextColor3 = Color3.fromRGB(0,0,0)
+        _0x0b2g.BackgroundTransparency = 0
+        _0x0b2g.BackgroundColor3 = Color3.fromRGB(200,200,200)
+
+        _0x0b2g.FocusLost:Connect(function()
+            local _0xcv4p = tonumber(_0x0b2g.Text)
+            if _0xcv4p then
+                _0x3b0e = math.max(0, _0xcv4p)
+            end
+            _0x0b2g:Destroy()
+            _0x0b2g = nil
+        end)
+    end)
+
+    _0x5p7i.MouseButton1Click:Connect(function()
+        if _0x9c3h and _0x9c3h.Parent then return end
+
+        _0x9c3h = Instance.new("TextBox")
+        _0x9c3h.Parent = _0x9e56
+        _0x9c3h.Size = UDim2.new(0, 50, 0, 20)
+        _0x9c3h.Position = UDim2.new(0, 180, 0, 20)
+        _0x9c3h.Text = tostring(_0x2c9d)
+        _0x9c3h.Font = Enum.Font.SourceSans
+        _0x9c3h.TextColor3 = Color3.fromRGB(0,0,0)
+        _0x9c3h.BackgroundTransparency = 0
+        _0x9c3h.BackgroundColor3 = Color3.fromRGB(200,200,200)
+
+        _0x9c3h.FocusLost:Connect(function()
+            local _0xdw5q = tonumber(_0x9c3h.Text)
+            if _0xdw5q then
+                _0x2c9d = math.max(0, _0xdw5q)
+            end
+            _0x9c3h:Destroy()
+            _0x9c3h = nil
+        end)
+    end)
+
+    -- Connect the invisibility button (without color change)
+    _0x6q8j.MouseButton1Click:Connect(function()
+        _0x8d4i = not _0x8d4i
+        _0xf5cd()
+    end)
+
+    _0x8d45.Parent = _0x7b3c:WaitForChild("PlayerGui")
+end
+
+_0x7c34()
+
+local _0xew6r = _0x7b3c.Character or _0x7b3c.CharacterAdded:Wait()
+local _0xff7s = _0xew6r:FindFirstChild("HumanoidRootPart")
+
+local function _0x0g8t(_0x1h9u, _0x2i0v)
+    if not _0x1h9u or not _0x1h9u:FindFirstChild("HumanoidRootPart") or not _0xff7s then
+        return false
+    end
+
+    local _0x3j1w = _0x1h9u:FindFirstChild("HumanoidRootPart")
+    local _0x4k2x = (_0xff7s.Position - _0x3j1w.Position).Magnitude
+    return _0x4k2x <= _0x2i0v
+end
+
+local humanoid
+local walkSpeedLoop
+
+while true do
+    if _0x7b3c.Character ~= _0xew6r then
+        _0xew6r = _0x7b3c.Character
+        if _0xew6r then
+            _0xff7s = _0xew6r:FindFirstChild("HumanoidRootPart")
+            humanoid = _0xew6r:FindFirstChild("Humanoid")
+        else
+            _0xff7s = nil
+            humanoid = nil
+            if walkSpeedLoop then
+                walkSpeedLoop:Disconnect()
+                walkSpeedLoop = nil
+            end
+        end
+    end
+
+    if humanoid and _0x5e8b then
+        if not walkSpeedLoop then
+            walkSpeedLoop = game:GetService("RunService").Heartbeat:Connect(function()
+                if humanoid then
+                    humanoid.WalkSpeed = 50
+                end
+            end)
+        end
+    elseif walkSpeedLoop then
+        if humanoid then
+            humanoid.WalkSpeed = 18
+        end
+        walkSpeedLoop:Disconnect()
+        walkSpeedLoop = nil
+    end
+
+    if _0xff7s and _0x1d6a then
+        for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+            if player ~= _0x7b3c and player.Character then
+                local character = player.Character
+                if _0x0g8t(character, _0x2c9d) then
+                    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                    if humanoidRootPart then
+                        local args = {
+                            character,
+                            Vector3.new(-132.09571838378906, 25.948652267456055, -5.953305244445801),
+                            11.787515640258789,
+                            humanoidRootPart
+                        }
+
+                        _0x4a2b:FireServer(unpack(args))
+                    end
+                end
+            end
+        end
+    end
+
+    wait(_0x3b0e)
+end
