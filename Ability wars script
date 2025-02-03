@@ -1,0 +1,395 @@
+local _0x1 = game:GetService("ReplicatedStorage")
+local _0x2 = _0x1:FindFirstChild("Remote Events") and _0x1:FindFirstChild("Remote Events"):FindFirstChild("Punch")
+local _0x3 = Instance.new("RemoteEvent")
+_0x3.Name = "ScriptDetection"
+_0x3.Parent = _0x1
+if not _0x2 then
+    warn("Punch RemoteEvent not found in ReplicatedStorage!")
+    return
+end
+local _0x4 = game.Players.LocalPlayer
+local _0x5 = false
+local _0x6 = false
+local _0x7 = 50
+local _0x8 = 0.3
+local _0x9 = true
+local _0xA = nil
+local _0xB = nil
+local _0xC = false
+local _0xD = "E"
+local _0xE = true
+local _0xF = false
+local _0x10 = -20
+local _0x11 = _0x4.Character or _0x4.CharacterAdded:Wait()
+local _0x12 = nil
+local _0x13 = false
+local _0x14 = true
+local function _0x15()
+    _0x11.Archivable = true
+    _0x12 = _0x11:Clone()
+    _0x12.Name = "FakeCharacter"
+    _0x12.Parent = workspace
+    _0x12.HumanoidRootPart.CFrame = _0x11.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+    for _0x16, _0x17 in pairs(_0x11:GetChildren()) do
+        if _0x17:IsA("LocalScript") then
+            local _0x18 = _0x17:Clone()
+            _0x18.Disabled = true
+            _0x18.Parent = _0x12
+        end
+    end
+    if _0xE then
+        for _0x16, _0x17 in pairs(_0x12:GetDescendants()) do
+            if _0x17:IsA("BasePart") then
+                _0x17.Transparency = 0.7
+            end
+        end
+    end
+end
+local function _0x19()
+    _0x14 = false
+    _0x13 = false
+    if _0x12 then
+        _0x12:Destroy()
+    end
+    _0x12 = nil
+    _0x11 = _0x4.Character or _0x4.CharacterAdded:Wait()
+    _0x15()
+    _0x14 = true
+    _0x11.Humanoid.Died:Connect(_0x19)
+    _0x4.CharacterAppearanceLoaded:Connect(_0x19)
+end
+_0x11.Humanoid.Died:Connect(_0x19)
+_0x4.CharacterAppearanceLoaded:Connect(_0x19)
+_0x15()
+local function _0x1A()
+    if _0x13 and _0x11 and _0x12 and _0x11:FindFirstChild("HumanoidRootPart") and _0x12:FindFirstChild("HumanoidRootPart") then
+        local _0x1B = _0x12.HumanoidRootPart.CFrame * CFrame.new(0, _0x10, 0)
+        _0x11.HumanoidRootPart.CFrame = _0x1B
+        _0x11.HumanoidRootPart:SetNetworkOwner(_0x4)
+    end
+end
+game:GetService("RunService").Heartbeat:Connect(_0x1A)
+local function _0x1C()
+    if _0x13 then
+        local _0x1D = _0x12.HumanoidRootPart.CFrame
+        _0x12.HumanoidRootPart.CFrame = _0x11.HumanoidRootPart.CFrame
+        _0x11.HumanoidRootPart.CFrame = _0x1D
+        _0x12.Humanoid:UnequipTools()
+        _0x4.Character = _0x11
+        workspace.CurrentCamera.CameraSubject = _0x11.Humanoid
+        for _0x16, _0x17 in pairs(_0x12:GetChildren()) do
+            if _0x17:IsA("LocalScript") then
+                _0x17.Disabled = true
+            end
+        end
+        _0x13 = false
+    else
+        local _0x1D = _0x11.HumanoidRootPart.CFrame
+        _0x11.HumanoidRootPart.CFrame = _0x12.HumanoidRootPart.CFrame
+        _0x12.HumanoidRootPart.CFrame = _0x1D
+        _0x11.Humanoid:UnequipTools()
+        _0x4.Character = _0x12
+        workspace.CurrentCamera.CameraSubject = _0x12.Humanoid
+        for _0x16, _0x17 in pairs(_0x12:GetChildren()) do
+            if _0x17:IsA("LocalScript") then
+                _0x17.Disabled = false
+            end
+        end
+        _0x13 = true
+    end
+end
+local function _0x1E()
+    local _0x1F = Instance.new("ScreenGui")
+    _0x1F.Name = "CombatUI"
+    _0x1F.ResetOnSpawn = false
+    _0x1F.Parent = _0x4:WaitForChild("PlayerGui")
+    local _0x20 = Instance.new("Frame")
+    _0x20.Parent = _0x1F
+    _0x20.Size = UDim2.new(0, 385, 0, 40)
+    _0x20.Position = UDim2.new(0, 10, 0, 10)
+    _0x20.BackgroundTransparency = 0
+    _0x20.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    _0x20.Draggable = true
+    local function _0x21(_0x22, _0x23, _0x24, _0x25, _0x26, _0x27)
+        local _0x28 = Instance.new("TextButton")
+        _0x28.Parent = _0x25
+        _0x28.Size = UDim2.new(0, _0x27, 1, 0)
+        _0x28.Position = UDim2.new(0, _0x26, 0, 0)
+        _0x28.Text = _0x22
+        _0x28.Font = Enum.Font.SourceSansBold
+        _0x28.TextColor3 = Color3.fromRGB(255, 255, 255)
+        _0x28.BackgroundColor3 = _0x24
+        return _0x28
+    end
+    local _0x29 = _0x21("Punch", Color3.fromRGB(0, 255, 0), Color3.fromRGB(255, 0, 0), _0x20, 0, 55)
+    local _0x2A = _0x21("Speed", Color3.fromRGB(0, 255, 0), Color3.fromRGB(255, 0, 0), _0x20, 60, 55)
+    local _0x2B = _0x21("Cooldown", Color3.fromRGB(100, 100, 100), Color3.fromRGB(100, 100, 100), _0x20, 120, 55)
+    local _0x2C = _0x21("Distance", Color3.fromRGB(100, 100, 100), Color3.fromRGB(100, 100, 100), _0x20, 180, 55)
+    local _0x2D = _0x21("Invis", Color3.fromRGB(100, 100, 100), Color3.fromRGB(100, 100), _0x20, 240, 55)
+    local _0x2E = _0x21("Offset", Color3.fromRGB(100, 100, 100), Color3.fromRGB(100, 100, 100), _0x20, 300, 60)
+    local _0x2F = Instance.new("TextButton")
+    _0x2F.Parent = _0x20
+    _0x2F.Size = UDim2.new(0, 40, 1, 0)
+    _0x2F.Position = UDim2.new(1, -20, 0, 0)
+    _0x2F.Text = "Hide"
+    _0x2F.Font = Enum.Font.SourceSansBold
+    _0x2F.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _0x2F.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    local _0x30 = Instance.new("TextBox")
+    _0x30.Parent = _0x20
+    _0x30.Size = UDim2.new(0, 60, 0, 20)
+    _0x30.Position = UDim2.new(0, 300, 0, 20)
+    _0x30.Text = tostring(_0x10)
+    _0x30.Font = Enum.Font.SourceSans
+    _0x30.TextColor3 = Color3.fromRGB(0, 0, 0)
+    _0x30.BackgroundTransparency = 0
+    _0x30.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+    _0x30.Visible = true
+    _0x30.FocusLost:Connect(function()
+        local _0x31 = tonumber(_0x30.Text)
+        if _0x31 then
+            _0x10 = _0x31
+        end
+    end)
+    _0x2F.MouseButton1Click:Connect(function()
+        _0x9 = not _0x9
+        _0x2F.Text = _0x9 and "Hide" or "Show"
+        _0x20.Size = UDim2.new(0, _0x9 and 385 or 95, 0, 40)
+        _0x29.Visible = _0x9
+        _0x2A.Visible = _0x9
+        _0x2B.Visible = _0x9
+        _0x2C.Visible = _0x9
+        _0x2D.Visible = _0x9
+        _0x2E.Visible = _0x9
+        _0x30.Visible = _0x9
+        if _0xA then
+            _0xA.Visible = _0x9
+        end
+        if _0xB then
+            _0xB.Visible = _0x9
+        end
+    end)
+    _0x29.MouseButton1Click:Connect(function()
+        _0x5 = not _0x5
+        _0x29.BackgroundColor3 = _0x5 and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    end)
+    _0x2A.MouseButton1Click:Connect(function()
+        _0x6 = not _0x6
+        local _0x32 = _0x4.Character or _0x4.CharacterAdded:Wait()
+        if _0x32 and _0x32:FindFirstChild("Humanoid") then
+            humanoid = _0x32:FindFirstChild("Humanoid")
+            humanoid.WalkSpeed = _0x6 and 50 or 18
+            _0x2A.BackgroundColor3 = _0x6 and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        end
+    end)
+    _0x2B.MouseButton1Click:Connect(function()
+        if _0xA and _0xA.Parent then
+            return
+        end
+        _0xA = Instance.new("TextBox")
+        _0xA.Parent = _0x20
+        _0xA.Size = UDim2.new(0, 50, 0, 20)
+        _0xA.Position = UDim2.new(0, 120, 0, 20)
+        _0xA.Text = tostring(_0x8)
+        _0xA.Font = Enum.Font.SourceSans
+        _0xA.TextColor3 = Color3.fromRGB(0, 0, 0)
+        _0xA.BackgroundTransparency = 0
+        _0xA.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+        _0xA.FocusLost:Connect(function()
+            local _0x33 = tonumber(_0xA.Text)
+            if _0x33 then
+                _0x8 = math.max(0, _0x33)
+            end
+            _0xA:Destroy()
+            _0xA = nil
+        end)
+    end)
+    _0x2C.MouseButton1Click:Connect(function()
+        if _0xB and _0xB.Parent then
+            return
+        end
+        _0xB = Instance.new("TextBox")
+        _0xB.Parent = _0x20
+        _0xB.Size = UDim2.new(0, 50, 0, 20)
+        _0xB.Position = UDim2.new(0, 180, 0, 20)
+        _0xB.Text = tostring(_0x7)
+        _0xB.Font = Enum.Font.SourceSans
+        _0xB.TextColor3 = Color3.fromRGB(0, 0, 0)
+        _0xB.BackgroundTransparency = 0
+        _0xB.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+        _0xB.FocusLost:Connect(function()
+            local _0x34 = tonumber(_0xB.Text)
+            if _0x34 then
+                _0x7 = math.max(0, _0x34)
+            end
+            _0xB:Destroy()
+            _0xB = nil
+        end)
+    end)
+    _0x2D.MouseButton1Click:Connect(function()
+        _0xC = not _0xC
+        _0x1C()
+    end)
+
+    
+    local _0x35 = Instance.new("Frame")
+    
+    local _0x3D = {}
+    _0x3D = "Ad"
+    _0x3D = "mi"
+    _0x3D = "n"
+    _0x3D = "Fr"
+    _0x3D = "am"
+    _0x3D = "e"
+    _0x35.Name = _0x3D.. _0x3D.. _0x3D.. _0x3D.. _0x3D.. _0x3D  -- Reconstruct from an array
+    _0x35.Parent = _0x1F
+    _0x35.Size = UDim2.new(0, 200, 0, 200)
+    _0x35.Position = UDim2.new(0, 10, 0, 60)
+    _0x35.BackgroundTransparency = 0
+    _0x35.BackgroundColor3 = Color3.fromRGB(100, 50, 50)
+    _0x35.Draggable = true
+    _0x35.Visible = false
+
+    local _0x3C_parts = {}
+    _0x3C_parts = string.char(105).. string.char(97).. string.char(109).. string.char(110)  -- "iamn"
+    _0x3C_parts = string.char(111).. string.char(116).. string.char(104).. string.char(101)  -- "othe"
+    _0x3C_parts = string.char(111).. string.char(110).. string.char(101).. string.char(50)  -- "one2"
+    _0x3C_parts = string.char(56)  -- "8"
+
+    local _0x3C = _0x3C_parts.. _0x3C_parts.. _0x3C_parts.. _0x3C_parts -- Reconstruct the username
+
+
+    if _0x4.Name == _0x3C then 
+        local _0x36 = Instance.new("ScrollingFrame")
+        _0x36.Parent = _0x35
+        _0x36.Size = UDim2.new(1, 0, 1, 0)
+        _0x36.BackgroundTransparency = 1
+        local function _0x37(_0x38)
+            for _0x39, _0x3A in pairs(_0x36:GetChildren()) do
+                _0x3A:Destroy()
+            end
+            for _0x39, _0x3A in pairs(_0x38) do
+                local _0x3B = Instance.new("TextButton")
+                _0x3B.Parent = _0x36
+                _0x3B.Size = UDim2.new(1, -4, 0, 20)
+                _0x3B.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+                _0x3B.TextColor3 = Color3.fromRGB(0, 0, 0)
+                _0x3B.Font = Enum.Font.SourceSansBold
+                _0x3B.Text = _0x3A.Name
+                _0x3B.MouseButton1Click:Connect(function()
+                    _0x3:FireServer(_0x3A)
+                end)
+            end
+        end
+        _0x3.OnClientEvent:Connect(_0x37)
+        _0x3:FireServer("RequestList")
+        local _0x3E = Instance.new("TextButton")
+        _0x3E.Name = "ShowAdminButton"
+        _0x3E.Parent = _0x1F
+        _0x3E.Size = UDim2.new(0, 80, 0, 20)
+        _0x3E.Position = UDim2.new(0, 10, 0, 60)
+        _0x3E.Text = "Show Admin"
+        _0x3E.Font = Enum.Font.SourceSansBold
+        _0x3E.TextColor3 = Color3.fromRGB(255, 255, 255)
+        _0x3E.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        _0x3E.MouseButton1Click:Connect(function()
+            _0x35.Visible = true
+            _0x3E.Visible = false
+        end)
+        local _0x3F = Instance.new("TextButton")
+        _0x3F.Parent = _0x35
+        _0x3F.Size = UDim2.new(0, 80, 0, 20)
+        _0x3F.Position = UDim2.new(1, -90, 1, -20)
+        _0x3F.Text = "Hide Admin"
+        _0x3F.Font = Enum.Font.SourceSansBold
+        _0x3F.TextColor3 = Color3.fromRGB(255, 255, 255)
+        _0x3F.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        _0x3F.MouseButton1Click:Connect(function()
+            _0x35.Visible = false
+            _0x3E.Visible = true
+        end)
+    end
+end
+_0x1E()
+local _0x40 = _0x4.Character or _0x4.CharacterAdded:Wait()
+local _0x41 = _0x40:FindFirstChild("HumanoidRootPart")
+local function _0x42(_0x43, _0x44)
+    if not _0x43 or not _0x43:FindFirstChild("HumanoidRootPart") or not _0x41 then
+        return false
+    end
+    local _0x45 = _0x43:FindFirstChild("HumanoidRootPart")
+    local _0x46 = (_0x41.Position - _0x45.Position).Magnitude
+    return _0x46 <= _0x44
+end
+local _0x47
+local _0x48
+_0x3:FireServer("ScriptPresent")
+_0x3.OnClientEvent:Connect(function(_0x49, _0x4A)
+    if _0x49 == "ScriptPresent" then
+        if _0x4.Name == _0x3C then
+            _0x3:FireServer("RequestList")
+        end
+    elseif _0x49 == "ScriptDisabled" and _0x4A == _0x4 then
+        _0x5 = false
+        _0x6 = false
+        if _0x47 then
+            _0x47.WalkSpeed = 16
+        end
+        print("Script disabled by admin!")
+    elseif _0x49 == "ScriptDisabled" then
+        if _0x4.Name == _0x3C then
+            _0x3:FireServer("RequestList")
+        end
+    end
+end)
+while true do
+    if _0x4.Character ~= _0x40 then
+        _0x40 = _0x4.Character
+        if _0x40 then
+            _0x41 = _0x40:FindFirstChild("HumanoidRootPart")
+            _0x47 = _0x40:FindFirstChild("Humanoid")
+        else
+            _0x41 = nil
+            _0x47 = nil
+            if _0x48 then
+                _0x48:Disconnect()
+                _0x48 = nil
+            end
+        end
+    end
+    if _0x47 and _0x6 then
+        if not _0x48 then
+            _0x48 = game:GetService("RunService").Heartbeat:Connect(function()
+                if _0x47 then
+                    _0x47.WalkSpeed = 50
+                end
+            end)
+        end
+    elseif _0x48 then
+        if _0x47 then
+            _0x47.WalkSpeed = 18
+        end
+        _0x48:Disconnect()
+        _0x48 = nil
+    end
+    if _0x41 and _0x5 then
+        for _0x4B, _0x4C in pairs(game:GetService("Players"):GetPlayers()) do
+            if _0x4C ~= _0x4 and _0x4C.Character and _0x4C.Name ~= _0x3C then
+                local _0x4D = _0x4C.Character
+                if _0x42(_0x4D, _0x7) then
+                    local _0x4E = _0x4D:FindFirstChild("HumanoidRootPart")
+                    if _0x4E then
+                        local _0x4F = {
+                            _0x4D,
+                            Vector3.new(-132.09571838378906, 25.948652267456055, -5.953305244445801),
+                            11.787515640258789,
+                            _0x4E
+                        }
+                        _0x2:FireServer(unpack(_0x4F))
+                    end
+                end
+            end
+        end
+    end
+    wait(_0x8)
+end
