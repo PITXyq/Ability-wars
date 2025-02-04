@@ -1,0 +1,511 @@
+-- Client Script
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local PunchEvent = ReplicatedStorage:FindFirstChild("Remote Events") and ReplicatedStorage:FindFirstChild("Remote Events"):FindFirstChild("Punch")
+local ScriptDetectionEvent = Instance.new("RemoteEvent")
+ScriptDetectionEvent.Name = "ScriptDetection"
+ScriptDetectionEvent.Parent = ReplicatedStorage
+
+if not PunchEvent then
+    warn("Punch RemoteEvent not found in ReplicatedStorage!")
+    return
+end
+
+local localPlayer = game.Players.LocalPlayer
+local punchEnabled = false
+local speedBoostEnabled = false
+local maxDistance = 50
+local waitTime = 0.3
+local buttonsVisible = true
+local cooldownTextBox = nil
+local distanceTextBox = nil
+
+local invisibilityEnabled = false
+local Keybind = "E"
+local Transparency = true
+local NoClip = false
+local invisibilityOffset = -20
+
+local RealCharacter = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+local FakeCharacter = nil
+local IsInvisible = false
+local CanInvis = true
+
+local function SetupFakeCharacter()
+    RealCharacter.Archivable = true
+    FakeCharacter = RealCharacter:Clone()
+    FakeCharacter.Name = "FakeCharacter"
+    FakeCharacter.Parent = workspace
+    FakeCharacter.HumanoidRootPart.CFrame = RealCharacter.HumanoidRootPart.CFrame * CFrame.new(0, 5, 0)
+
+    for i, v in pairs(RealCharacter:GetChildren()) do
+        if v:IsA("LocalScript") then
+            local clone = v:Clone()
+            clone.Disabled = true
+            clone.Parent = FakeCharacter
+        end
+    end
+
+    if Transparency then
+        for i, v in pairs(FakeCharacter:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.Transparency = 0.7
+            end
+        end
+    end
+end
+
+local function RealCharacterDied()
+    CanInvis = false
+    IsInvisible = false
+    if FakeCharacter then
+        FakeCharacter:Destroy()
+    end
+    FakeCharacter = nil
+    RealCharacter = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+    SetupFakeCharacter()
+    CanInvis = true
+    RealCharacter.Humanoid.Died:Connect(RealCharacterDied)
+    localPlayer.CharacterAppearanceLoaded:Connect(RealCharacterDied)
+end
+
+RealCharacter.Humanoid.Died:Connect(RealCharacterDied)
+localPlayer.CharacterAppearanceLoaded:Connect(RealCharacterDied)
+
+SetupFakeCharacter()
+
+local function UpdateRealCharacterPosition()
+    if IsInvisible and RealCharacter and FakeCharacter and RealCharacter:FindFirstChild("HumanoidRootPart") and FakeCharacter:FindFirstChild("HumanoidRootPart") then
+        local targetCFrame = FakeCharacter.HumanoidRootPart.CFrame * CFrame.new(0, invisibilityOffset, 0)
+        RealCharacter.HumanoidRootPart.CFrame = targetCFrame
+        RealCharacter.HumanoidRootPart:SetNetworkOwner(localPlayer)
+    end
+end
+
+game:GetService("RunService").Heartbeat:Connect(UpdateRealCharacterPosition)
+
+local function Invisible()
+    if IsInvisible then
+        local StoredCF = FakeCharacter.HumanoidRootPart.CFrame
+        FakeCharacter.HumanoidRootPart.CFrame = RealCharacter.HumanoidRootPart.CFrame
+        RealCharacter.HumanoidRootPart.CFrame = StoredCF
+
+        FakeCharacter.Humanoid:UnequipTools()
+        localPlayer.Character = RealCharacter
+        workspace.CurrentCamera.CameraSubject = RealCharacter.Humanoid
+
+        for i, v in pairs(FakeCharacter:GetChildren()) do
+            if v:IsA("LocalScript") then
+                v.Disabled = true
+            end
+        end
+
+        IsInvisible = false
+    else
+        local StoredCF = RealCharacter.HumanoidRootPart.CFrame
+        RealCharacter.HumanoidRootPart.CFrame = FakeCharacter.HumanoidRootPart.CFrame
+        FakeCharacter.HumanoidRootPart.CFrame = StoredCF
+
+        RealCharacter.Humanoid:UnequipTools()
+        localPlayer.Character = FakeCharacter
+        workspace.CurrentCamera.CameraSubject = FakeCharacter.Humanoid
+
+        for i, v in pairs(FakeCharacter:GetChildren()) do
+            if v:IsA("LocalScript") then
+                v.Disabled = false
+            end
+        end
+        IsInvisible = true
+    end
+end
+
+local function createUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "CombatUI"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.Parent = localPlayer:WaitForChild("PlayerGui")
+
+    local Frame = Instance.new("Frame")
+    Frame.Parent = ScreenGui
+    Frame.Size = UDim2.new(0, 385, 0, 40)
+    Frame.Position = UDim2.new(0, 10, 0, 10)
+    Frame.BackgroundTransparency = 0
+    Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Frame.Draggable = true
+
+    local function createButton(text, colorEnabled, colorDisabled, parent, xPos, sizeX)
+        local button = Instance.new("TextButton")
+        button.Parent = parent
+        button.Size = UDim2.new(0, sizeX, 1, 0)
+        button.Position = UDim2.new(0, xPos, 0, 0)
+        button.Text = text
+        button.Font = Enum.Font.SourceSansBold
+        button.TextColor3 = Color3.fromRGB(255,255,255)
+        button.BackgroundColor3 = colorDisabled
+        return button
+    end
+
+    local punchButton = createButton("Punch", Color3.fromRGB(0, 255, 0), Color3.fromRGB(255, 0, 0), Frame, 0, 55)
+    local speedBoostButton = createButton("Speed", Color3.fromRGB(0, 255, 0), Color3.fromRGB(255, 0, 0), Frame, 60, 55)
+    local cooldownButton = createButton("Cooldown", Color3.fromRGB(100,100,100), Color3.fromRGB(100,100,100), Frame, 120, 55)
+    local distanceButton = createButton("Distance", Color3.fromRGB(100,100,100), Color3.fromRGB(100,100,100), Frame, 180, 55)
+    local invisButton = createButton("Invis", Color3.fromRGB(100, 100, 100), Color3.fromRGB(100, 100, 100), Frame, 240, 55)
+    local offsetButton = createButton("Offset", Color3.fromRGB(100, 100, 100), Color3.fromRGB(100, 100, 100), Frame, 300, 60)
+
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Parent = Frame
+    toggleButton.Size = UDim2.new(0, 40, 1, 0)
+    toggleButton.Position = UDim2.new(1, -20, 0, 0)
+    toggleButton.Text = "Hide"
+    toggleButton.Font = Enum.Font.SourceSansBold
+    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+
+    local offsetTextBox = Instance.new("TextBox")
+    offsetTextBox.Parent = Frame
+    offsetTextBox.Size = UDim2.new(0, 60, 0, 20)
+    offsetTextBox.Position = UDim2.new(0, 300, 0, 20)
+    offsetTextBox.Text = tostring(invisibilityOffset)
+    offsetTextBox.Font = Enum.Font.SourceSans
+    offsetTextBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+    offsetTextBox.BackgroundTransparency = 0
+    offsetTextBox.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+    offsetTextBox.Visible = true
+
+    offsetTextBox.FocusLost:Connect(function()
+        local newOffset = tonumber(offsetTextBox.Text)
+        if newOffset then
+            invisibilityOffset = newOffset
+        end
+    end)
+
+    toggleButton.MouseButton1Click:Connect(function()
+        buttonsVisible = not buttonsVisible
+        toggleButton.Text =buttonsVisible and "Hide" or "Show"
+        Frame.Size = UDim2.new(0, buttonsVisible and 385 or 95, 0, 40)
+
+        punchButton.Visible = buttonsVisible
+        speedBoostButton.Visible = buttonsVisible
+        cooldownButton.Visible = buttonsVisible
+        distanceButton.Visible = buttonsVisible
+        invisButton.Visible = buttonsVisible
+        offsetButton.Visible = buttonsVisible
+        offsetTextBox.Visible = buttonsVisible
+
+        if cooldownTextBox then
+            cooldownTextBox.Visible = buttonsVisible
+        end
+        if distanceTextBox then
+            distanceTextBox.Visible = buttonsVisible
+        end
+    end)
+
+    punchButton.MouseButton1Click:Connect(function()
+        punchEnabled = not punchEnabled
+        punchButton.BackgroundColor3 = punchEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    end)
+
+    speedBoostButton.MouseButton1Click:Connect(function()
+        speedBoostEnabled = not speedBoostEnabled
+        local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+        if character and character:FindFirstChild("Humanoid") then
+            humanoid = character:FindFirstChild("Humanoid")
+            humanoid.WalkSpeed = speedBoostEnabled and 50 or 18
+            speedBoostButton.BackgroundColor3 = speedBoostEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        end
+    end)
+
+    cooldownButton.MouseButton1Click:Connect(function()
+        if cooldownTextBox and cooldownTextBox.Parent then return end
+
+        cooldownTextBox = Instance.new("TextBox")
+        cooldownTextBox.Parent = Frame
+        cooldownTextBox.Size = UDim2.new(0, 50, 0, 20)
+        cooldownTextBox.Position = UDim2.new(0, 120, 0, 20)
+        cooldownTextBox.Text = tostring(waitTime)
+        cooldownTextBox.Font = Enum.Font.SourceSans
+        cooldownTextBox.TextColor3 = Color3.fromRGB(0,0,0)
+        cooldownTextBox.BackgroundTransparency = 0
+        cooldownTextBox.BackgroundColor3 = Color3.fromRGB(200,200,200)
+
+        cooldownTextBox.FocusLost:Connect(function()
+            local newWaitTime = tonumber(cooldownTextBox.Text)
+            if newWaitTime then
+                waitTime = math.max(0, newWaitTime)
+            end
+            cooldownTextBox:Destroy()
+            cooldownTextBox = nil
+        end)
+    end)
+
+    distanceButton.MouseButton1Click:Connect(function()
+        if distanceTextBox and distanceTextBox.Parent then return end
+
+        distanceTextBox = Instance.new("TextBox")
+        distanceTextBox.Parent = Frame
+        distanceTextBox.Size = UDim2.new(0, 50, 0, 20)
+        distanceTextBox.Position = UDim2.new(0, 180, 0, 20)
+        distanceTextBox.Text = tostring(maxDistance)
+        distanceTextBox.Font = Enum.Font.SourceSans
+        distanceTextBox.TextColor3 = Color3.fromRGB(0,0,0)
+        distanceTextBox.BackgroundTransparency = 0
+        distanceTextBox.BackgroundColor3 = Color3.fromRGB(200,200,200)
+
+        distanceTextBox.FocusLost:Connect(function()
+            local newMaxDistance = tonumber(distanceTextBox.Text)
+            if newMaxDistance then
+                maxDistance = math.max(0, newMaxDistance)
+            end
+            distanceTextBox:Destroy()
+            distanceTextBox = nil
+        end)
+    end)
+
+    invisButton.MouseButton1Click:Connect(function()
+        invisibilityEnabled = not invisibilityEnabled
+        Invisible()
+    end)
+
+    if localPlayer.Name == "iamnotheone28" then
+        local adminFrame = Instance.new("Frame")
+        adminFrame.Name = "AdminFrame"
+        adminFrame.Parent = ScreenGui
+        adminFrame.Size = UDim2.new(0, 200, 0, 200)
+        adminFrame.Position = UDim2.new(0, 10, 0, 60)
+        adminFrame.BackgroundTransparency = 0
+        adminFrame.BackgroundColor3 = Color3.fromRGB(100, 50, 50)
+        adminFrame.Draggable = true
+        adminFrame.Visible = false
+
+        local playerList = Instance.new("ScrollingFrame")
+        playerList.Parent = adminFrame
+        playerList.Size = UDim2.new(1, 0, 1, 0)
+        playerList.BackgroundTransparency = 1
+
+        local function updatePlayerList(players, punchedPlayers)
+            for _, child in pairs(playerList:GetChildren()) do
+                child:Destroy()
+            end
+            for _, player in pairs(players) do
+                local playerButton = Instance.new("Frame")
+                playerButton.Parent = playerList
+                playerButton.Size = UDim2.new(1, -4, 0, 30)
+                playerButton.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+
+                local nameButton = Instance.new("TextButton")
+                nameButton.Parent = playerButton
+                nameButton.Size = UDim2.new(0, 120, 1, 0)
+                nameButton.BackgroundColor3 = Color3.fromRGB(170,170,170)
+                nameButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+                nameButton.Font = Enum.Font.SourceSansBold
+                nameButton.Text = player.Name
+                nameButton.MouseButton1Click:Connect(function()
+
+                end)
+
+                local disableButton = Instance.new("TextButton")
+                disableButton.Parent = playerButton
+                disableButton.Size = UDim2.new(0, 60, 1, 0)
+                disableButton.Position = UDim2.new(0,120,0,0)
+                disableButton.Text = punchedPlayers[player.UserId] and "Enable" or "Disable"
+                disableButton.BackgroundColor3 = punchedPlayers[player.UserId] and Color3.fromRGB(0,255,0) or Color3.fromRGB(255,0,0)
+                disableButton.TextColor3 = Color3.fromRGB(0,0,0)
+                disableButton.Font = Enum.Font.SourceSansBold
+                disableButton.MouseButton1Click:Connect(function()
+                    ScriptDetectionEvent:FireServer("DisablePunch", player)
+                end)
+            end
+        end
+
+        ScriptDetectionEvent.OnClientEvent:Connect(function(message, playerList, punchedPlayers)
+            if message == "UpdatePlayerList" then
+                updatePlayerList(playerList, punchedPlayers)
+            elseif message == "PunchDisabled" then
+                if player == localPlayer then
+                    punchEnabled = false
+                    print("You have been prevented from punching by an admin.")
+                end
+            elseif message == "PunchEnabled" then
+                if player == localPlayer then
+                    print("You are now allowed to punch again.")
+                end
+            elseif message == "PlayerPunched" then
+                if localPlayer.Name == "iamnotheone28" then
+                    ScriptDetectionEvent:FireServer("RequestList")
+                end
+                print(player.Name.. " can no longer punch.")
+            elseif message == "PlayerUnpunched" then
+                if localPlayer.Name == "iamnotheone28" then
+                    ScriptDetectionEvent:FireServer("RequestList")
+                end
+                print(player.Name.. " can now punch again.")
+            end
+        end)
+
+        ScriptDetectionEvent:FireServer("RequestList")
+
+        local showAdminButton = Instance.new("TextButton")
+        showAdminButton.Name = "ShowAdminButton"
+        showAdminButton.Parent = ScreenGui
+        showAdminButton.Size = UDim2.new(0, 80, 0, 20)
+        showAdminButton.Position = UDim2.new(0, 10, 0, 60)
+        showAdminButton.Text = "Show Admin"
+        showAdminButton.Font = Enum.Font.SourceSansBold
+        showAdminButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        showAdminButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+
+        showAdminButton.MouseButton1Click:Connect(function()
+            adminFrame.Visible = true
+            showAdminButton.Visible = false
+        end)
+
+        local hideAdminButton = Instance.new("TextButton")
+        hideAdminButton.Parent = adminFrame
+        hideAdminButton.Size = UDim2.new(0, 80, 0, 20)
+        hideAdminButton.Position = UDim2.new(1, -90, 1, -20)
+        hideAdminButton.Text = "Hide Admin"
+        hideAdminButton.Font = Enum.Font.SourceSansBold
+        hideAdminButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        hideAdminButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+
+        hideAdminButton.MouseButton1Click:Connect(function()
+            adminFrame.Visible = false
+            showAdminButton.Visible = true
+        end)
+    end
+end
+
+createUI()
+
+local localCharacter = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+local localHumanoidRootPart = localCharacter:FindFirstChild("HumanoidRootPart")
+
+local function isNear(targetCharacter,maxDistance)
+    if not targetCharacter or not targetCharacter:FindFirstChild("HumanoidRootPart") or not localHumanoidRootPart then
+        return false
+    end
+
+    local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+    local distance = (localHumanoidRootPart.Position - targetRootPart.Position).Magnitude
+    return distance <= maxDistance
+end
+
+local humanoid
+local walkSpeedLoop
+
+ScriptDetectionEvent:FireServer("ScriptPresent")
+
+ScriptDetectionEvent.OnClientEvent:Connect(function(message, player)
+    if message == "ScriptPresent" then
+        if localPlayer.Name == "iamnotheone28" then
+            ScriptDetectionEvent:FireServer("RequestList")
+        end
+    elseif message == "ScriptDisabled" and player == localPlayer then
+        punchEnabled = false
+        speedBoostEnabled = false
+        if humanoid then
+            humanoid.WalkSpeed = 16
+        end
+        print("Script disabled by admin!")
+    elseif message == "ScriptDisabled" then
+        if localPlayer.Name == "iamnotheone28" then
+            ScriptDetectionEvent:FireServer("RequestList")
+        end
+    end
+end)
+
+while true do
+    if localPlayer.Character ~= localCharacter then
+        localCharacter = localPlayer.Character
+        if localCharacter then
+            localHumanoidRootPart = localCharacter:FindFirstChild("HumanoidRootPart")
+            humanoid = localCharacter:FindFirstChild("Humanoid")
+        else
+            localHumanoidRootPart = nil
+            humanoid = nil
+            if walkSpeedLoop then
+                walkSpeedLoop:Disconnect()
+                walkSpeedLoop = nil
+            end
+        end
+    end
+
+    if humanoid and speedBoostEnabled then
+        if not walkSpeedLoop then
+            walkSpeedLoop = game:GetService("RunService").Heartbeat:Connect(function()
+                if humanoid then
+                    humanoid.WalkSpeed = 50
+                end
+            end)
+        end
+    elseif walkSpeedLoop then
+        if humanoid then
+            humanoid.WalkSpeed = 18
+        end
+        walkSpeedLoop:Disconnect()
+        walkSpeedLoop = nil
+    end
+
+    if localHumanoidRootPart and punchEnabled then
+        for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+            if player ~= localPlayer and player.Character and player.Name ~= "iamnotheone28" then
+                local character = player.Character
+                if isNear(character, maxDistance) then
+                    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                    if humanoidRootPart then
+                        local args = {
+                            character,
+                            Vector3.new(-132.09571838378906, 25.948652267456055, -5.953305244445801),
+                            11.787515640258789,
+                            humanoidRootPart
+                        }
+
+                        PunchEvent:FireServer(unpack(args))
+                    end
+                end
+            end
+        end
+    end
+
+    wait(waitTime)
+end
+
+
+-- Server Script (in ServerScriptService)
+local Players = game:GetService("Players")
+local PunchedPlayers = {}
+
+ScriptDetectionEvent.OnServerEvent:Connect(function(player, message, targetPlayer)
+    if message == "ScriptPresent" then
+        ScriptDetectionEvent:FireClient(player, "UpdatePlayerList", Players:GetPlayers(), PunchedPlayers)
+    elseif message == "RequestList" then
+        local playerList = {}
+        for _, p in pairs(Players:GetPlayers()) do
+            table.insert(playerList, p)
+        end
+        ScriptDetectionEvent:FireClient(player, "UpdatePlayerList", playerList, PunchedPlayers)
+    elseif message == "DisablePunch" then
+        if player.Name == "iamnotheone28" and targetPlayer then
+            if not PunchedPlayers[targetPlayer.UserId] then
+                PunchedPlayers[targetPlayer.UserId] = true
+                ScriptDetectionEvent:FireClient(targetPlayer, "PunchDisabled")
+                ScriptDetectionEvent:FireAllClients("PlayerPunched", targetPlayer)
+            else
+                PunchedPlayers[targetPlayer.UserId] = nil
+                ScriptDetectionEvent:FireClient(targetPlayer, "PunchEnabled")
+                ScriptDetectionEvent:FireAllClients("PlayerUnpunched", targetPlayer)
+            end
+            ScriptDetectionEvent:FireClient(player, "UpdatePlayerList", Players:GetPlayers(), PunchedPlayers)
+        end
+    end
+end)
+
+game:GetService("Players").PlayerAdded:Connect(function(player)
+    wait(1)
+    ScriptDetectionEvent:FireAllClients("UpdatePlayerList", Players:GetPlayers(), PunchedPlayers)
+end)
+
+game:GetService("Players").PlayerRemoving:Connect(function(player)
+    PunchedPlayers[player.UserId] = nil
+    wait(1)
+    ScriptDetectionEvent:FireAllClients("UpdatePlayerList", Players:GetPlayers(), PunchedPlayers)
+end)
