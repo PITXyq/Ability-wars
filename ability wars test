@@ -33,6 +33,7 @@ local _0x14 = true
 -- Anti-void variables
 local antiVoidEnabled = false
 local safeSpot = Vector3.new(0, 10, 0) -- Default safe spot. Customize as needed.
+local antiVoidVelocity = -145 -- Default anti-void velocity
 
 -- Function to set up the Fake Character
 local function _0x15()
@@ -154,7 +155,7 @@ local function toggleAntiVoid()
         antiVoidConnection = game:GetService("RunService").Heartbeat:Connect(function()
             local character = _0x4.Character or _0x4.CharacterAdded:Wait()
             local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-            if humanoidRootPart and humanoidRootPart.Velocity.Y < -145 then
+            if humanoidRootPart and humanoidRootPart.Velocity.Y < antiVoidVelocity then -- Use the editable variable
                 teleportToSafeSpot()
             end
         end)
@@ -176,7 +177,7 @@ local function _0x21()
 
     local _0x23 = Instance.new("Frame")
     _0x23.Parent = _0x22
-    _0x23.Size = UDim2.new(0, 455, 0, 40) -- Adjusted frame size to accommodate Anti-Void button
+    _0x23.Size = UDim2.new(0, 525, 0, 40) -- Adjusted frame size to accommodate Anti-Void button and textbox
     _0x23.Position = UDim2.new(0, 10, 0, 10)
     _0x23.BackgroundTransparency = 0
     _0x23.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -186,7 +187,7 @@ local function _0x21()
         local button = Instance.new("TextButton")
         button.Parent = parent
         button.Size = UDim2.new(0, sizeX, 1, 0)
-        button.Position = UDim2.new(0, xPos, 0, 0)
+        button.Position = UDim2.new(0, xPos,0, 0)
         button.Text = text
         button.Font = Enum.Font.SourceSansBold
         button.TextColor3 = Color3.fromRGB(255,255,255)
@@ -226,10 +227,30 @@ local function _0x21()
             _0x10 = _0x2d
         end
     end)
+
+    -- Anti-Void Velocity Textbox
+    local antiVoidVelocityBox = Instance.new("TextBox")
+    antiVoidVelocityBox.Parent = _0x23
+    antiVoidVelocityBox.Size = UDim2.new(0, 60, 0, 20)
+    antiVoidVelocityBox.Position = UDim2.new(0, 455, 0, 20) -- Position it next to the Anti-Void button
+    antiVoidVelocityBox.Text = tostring(antiVoidVelocity)
+    antiVoidVelocityBox.Font = Enum.Font.SourceSans
+    antiVoidVelocityBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+    antiVoidVelocityBox.BackgroundTransparency = 0
+    antiVoidVelocityBox.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+    antiVoidVelocityBox.Visible = true
+    antiVoidVelocityBox.FocusLost:Connect(function()
+        local newVelocity = tonumber(antiVoidVelocityBox.Text)
+        if newVelocity then
+            antiVoidVelocity = newVelocity
+        end
+    end)
+
+
     _0x2b.MouseButton1Click:Connect(function()
         _0x9 = not _0x9
         _0x2b.Text = _0x9 and "Hide" or "Show"
-        _0x23.Size = UDim2.new(0, _0x9 and 455 or 95, 0, 40) -- Adjusted size
+        _0x23.Size = UDim2.new(0, _0x9 and 525 or 95, 0, 40) -- Adjusted size
         _0x25.Visible = _0x9
         _0x26.Visible = _0x9
         _0x27.Visible = _0x9
@@ -238,6 +259,7 @@ local function _0x21()
         _0x2a.Visible = _0x9
         _0x2c.Visible = _0x9
         antiVoidButton.Visible = _0x9 -- Hide Anti-Void button
+        antiVoidVelocityBox.Visible = _0x9 -- Hide Anti-Void velocity textbox
         if _0xa then
             _0xa.Visible = _0x9
         end
@@ -301,7 +323,8 @@ local function _0x21()
     -- Connect the invisibility button (without color change)
     _0x29.MouseButton1Click:Connect(function()
         _0xc = not _0xc
-        _0x1c()end)
+        _0x1c()
+    end)
 
     -- Anti-Void Button Functionality
     antiVoidButton.MouseButton1Click:Connect(function()
@@ -432,7 +455,7 @@ while true do
         _0x36 = _0x4.Character
         if _0x36 then
             _0x37 = _0x36:FindFirstChild("HumanoidRootPart")
-            humanoid = _0x36:FindFirstChild("Humanoid")
+            humanoid =_0x36:FindFirstChild("Humanoid")
         else
             _0x37 = nil
             humanoid = nil
