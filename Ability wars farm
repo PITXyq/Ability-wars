@@ -1,0 +1,127 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Teleport Script Variables
+local RemoteEvent = ReplicatedStorage:WaitForChild("Remote Events"):WaitForChild("ActivateStarted")
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- Punch Script Variables
+local PunchEvent = ReplicatedStorage:FindFirstChild("Remote Events") and ReplicatedStorage:FindFirstChild("Remote Events"):FindFirstChild("Punch")
+if not PunchEvent then
+    warn("Punch RemoteEvent not found in ReplicatedStorage!")
+    return
+end
+local PunchEnabled = true -- Punch enabled by default
+local PunchDistance = 100 -- Punch distance
+
+-- Teleport Functions
+local function TeleportToRandomPlayer()
+    local availablePlayers = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            table.insert(availablePlayers, player)
+        end
+    end
+
+    if #availablePlayers > 0 then
+        local randomIndex = math.random(1, #availablePlayers)
+        local targetPlayer = availablePlayers[randomIndex]
+        local targetCharacter = targetPlayer.Character
+        local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+
+        local teleportPosition = targetRootPart.CFrame * CFrame.new(0, 5, 0)
+        HumanoidRootPart.CFrame = teleportPosition
+
+        print("Teleported to " .. targetPlayer.Name)
+    else
+        print("No other players found to teleport to.")
+    end
+end
+
+local function StartTeleportLoop()
+    while true do
+        TeleportToRandomPlayer()
+        wait(0.5)
+    end
+end
+
+
+-- Punch Functions
+local function GeneratePunchDirection()
+    local x = math.random(-1, 1) * 50
+    local y = math.random(10, 30)
+    local z = math.random(-1, 1) * 50
+    return Vector3.new(x, y, z)
+end
+
+local function GeneratePunchForce()
+    return math.random(5, 15)
+end
+
+local function IsTargetInRange(targetCharacter, punchDistance)
+    if not targetCharacter or not targetCharacter:FindFirstChild("HumanoidRootPart") or not HumanoidRootPart then
+        return false
+    end
+    local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+    local distance = (HumanoidRootPart.Position - targetRootPart.Position).Magnitude
+    return distance <= punchDistance
+end
+
+local function PunchLoop()
+    while true do
+        if LocalPlayer.Character ~= Character then
+            Character = LocalPlayer.Character
+            if Character then
+                HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+            else
+                HumanoidRootPart = nil
+            end
+        end
+
+        if HumanoidRootPart and PunchEnabled then
+            for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+                if player ~= LocalPlayer and player.Character then
+                    local character = player.Character
+                    if IsTargetInRange(character, PunchDistance) then
+                        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                        local torso = character:FindFirstChild("Torso")
+                        if humanoidRootPart and torso then
+                            local punchDirection = GeneratePunchDirection()
+                            local punchForce = GeneratePunchForce()
+                            local args = {
+                                71247352612,
+                                character,
+                                punchDirection,
+                                punchForce,
+                                torso
+                            }
+                            PunchEvent:FireServer(unpack(args))
+                        else
+                            warn("Target character or Torso not found for: " .. player.Name)
+                        end
+                    end
+                end
+            end
+        end
+        wait(0.05)
+    end
+end
+
+
+-- Start both loops using coroutines
+coroutine.wrap(StartTeleportLoop)()
+coroutine.wrap(PunchLoop)()
+
+-- Call the RemoteEvent (once at the start)
+local args = {[1] = "Normal"}
+RemoteEvent:FireServer(unpack(args))
+
+
+-- Handle respawning for teleport
+LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    Character = newCharacter
+    HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+    coroutine.wrap(StartTeleportLoop)() -- Restart teleport loop
+end)
